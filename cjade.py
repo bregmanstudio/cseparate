@@ -1,11 +1,8 @@
 import numpy as np
 from scipy.linalg import eig, sqrtm, inv
+import pdb
 
 def cjade(X,m=None):
-    # EXPERIMENTAL - Translation of Complex JADE to Python
-    # Michael A. Casey - Bregman Media Labs
-    # NOT FINISHED - DO NOT USE
-    #
     # Source separation of complex signals with JADE.
     # Jade performs `Source Separation' in the following sense:
     #   X is an n x T data matrix assumed modelled as X = A S + N where
@@ -14,7 +11,7 @@ def cjade(X,m=None):
     # o S is a m x T data matrix (source signals) with the properties
     #    	a) for each t, the components of S(:,t) are statistically
     #    	   independent
-    # 	b) for each p, the S(p,:) is the realization of a zero-mean
+    # 	b) for each p, the S[p,:] is the realization of a zero-mean
     # 	   `source signal'.
     # 	c) At most one of these processes has a vanishing 4th-order
     # 	   cumulant.
@@ -28,7 +25,7 @@ def cjade(X,m=None):
     # THIS VERSION ASSUMES ZERO-MEAN SIGNALS
     #
     # Input :
-    #   * X: Each column of X is a sample from the n sensors
+    #   * X: Each column of X is a sample from the n sensors (time series' in rows)
     #   * m: m is an optional argument for the number of sources.
     #     If ommited, JADE assumes as many sources as sensors.
     #
@@ -38,7 +35,7 @@ def cjade(X,m=None):
     #
     #
     # Version 1.6.  Copyright: JF Cardoso.  
-    #
+    # Translated to Python by Michael A. Casey, Bregman Labs, All Rights Reserved
     # See notes, references and revision history at the bottom of this file
 
 
@@ -101,11 +98,11 @@ def cjade(X,m=None):
     R = (Y*Y.H)/T
     C = (Y*Y.T)/T
 
-    Yl = np.zeros((1,T))
-    Ykl = np.zeros((1,T))
-    Yjkl = np.zeros((1,T))
+    Yl = np.matrix(np.zeros((1,T)))
+    Ykl = np.matrix(np.zeros((1,T)))
+    Yjkl = np.matrix(np.zeros((1,T)))
 
-    Q = zeros((m*m*m*m),1)
+    Q = np.matrix(zeros((m*m*m*m,1)))
     index = 0
 
     for lx in np.arange(m):
@@ -115,7 +112,7 @@ def cjade(X,m=None):
             for jx in np.arange(m):
                 Yjkl = np.multiply(Ykl, Y[jx,:].conj())
                 for ix in np.arange(m):
-                    Q[index] = np.multiply(Yjkl, Y[ix,:].T)/T -  R[ix,jx]*R[lx,kx] -  R[ix,kx]*R[lx,jx] -  C[ix,lx]*C[jx,kx].conj()  
+                    Q[index] = (Yjkl*Y[ix,:].T)/T -  R[ix,jx]*R[lx,kx] -  R[ix,kx]*R[lx,jx] -  C[ix,lx]*C[jx,kx].conj()  
                     index += 1
 
     #% If you prefer to use more memory and less CPU, you may prefer this
@@ -134,17 +131,17 @@ def cjade(X,m=None):
     #%%computation and reshaping of the significant eigen matrices
 
     D, U = eig(Q.reshape(m*m,m*m))
-    la = np.absolute(np.diag(D))
+    la = np.absolute(D) # la = np.absolute(np.diag(D))
     K = np.argsort(la)
     la = la[K]
 
     # reshaping the most (there are `nem' of them) significant eigenmatrice
-    M = np.zeros((m,nem*m)) # array to hold the significant eigen-matrices
-    Z = np.zeros(m) # buffer
-    h = m*m
+    M = np.matrix(np.zeros((m,nem*m))) # array to hold the significant eigen-matrices
+    Z = np.matrix(np.zeros((m,m))) # buffer
+    h = m*m - 1
     for u in np.arange(0, nem*m, m): 
-        Z[:] = U[:,K[h]]
-        M[:,u:u+m-1] = la[h]*Z
+        Z[:] = U[:,K[h]].reshape(m,m)
+        M[:,u:u+m] = la[h]*Z
         h -= 1 
 
 
@@ -156,22 +153,22 @@ def cjade(X,m=None):
     #% Better declare the variables used in the loop :
     B = np.matrix([ [1, 0, 0], [0, 1, 1], [0, -1j, 1j ]])
     Bt = B.H
-    Ip = np.zeros((1,nem))
-    Iq = np.zeros((1,nem))
-    g = np.zeros((3,nem))
-    G = np.zeros((2,2))
-    vcp = np.zeros((3,3))
-    D = np.zeros((3,3))
-    la = np.zeros((3,1))
-    K = np.zeros((3,3))
-    angles = np.zeros((3,1))
-    pair = np.zeros((1,2))
+    Ip = np.matrix(np.zeros((1,nem)))
+    Iq = np.matrix(np.zeros((1,nem)))
+    g = np.matrix(np.zeros((3,nem)))
+    G = np.matrix(np.zeros((2,2)))
+    vcp = np.matrix(np.zeros((3,3)))
+    D = np.matrix(np.zeros((3,3)))
+    la = np.matrix(np.zeros((3,1)))
+    K = np.matrix(np.zeros((3,3)))
+    angles = np.matrix(np.zeros((3,1)))
+    pair = np.matrix(np.zeros((1,2)))
     c = 0 
     s = 0 
 
     # init
     encore	= 1
-    V = np.eye(m) 
+    V = np.matrix(np.eye(m))
 
     # Main loop
     while encore:
@@ -184,8 +181,8 @@ def cjade(X,m=None):
                 # Computing the Givens angles
                 g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
                 D, vcp = eig(real(B*(g*g.H)*Bt))
-                K = np.argsort(diag(D))
-                la = diag(D)[k] 
+                K = np.argsort(D) # K = np.argsort(diag(D))
+                la = D[K] # la = diag(D)[k] 
                 angles	= vcp[:,K[2]]
                 angles = -angles if angles[0]<0 else angles
                 c = np.sqrt(0.5+angles[0]/2.0)
@@ -193,14 +190,14 @@ def cjade(X,m=None):
                 if abs(s) > seuil: # updates matrices M and V by a Givens rotation
                     encore = 1
                     pair = np.r_[p,q]
-                    G = np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ]
+                    G = np.matrix(np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ])
                     V[:,pair] = V[:,pair] * G
                     M[pair,:]	= G.H * M[pair,:]
-                    M[:,np.array([Ip,Iq])] = np.r_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
+                    M[:,np.r_[Ip,Iq]] = np.c_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
 
 
-    #%%estimation of the mixing matrix and signal separation
-    A= IW*V
+    # estimation of the mixing matrix and signal separation
+    A = IW*V
     S = V.H*Y
 
     return A,S
@@ -300,6 +297,6 @@ def cjade(X,m=None):
     #  title 	= "On the performance of orthogonal source separation algorithms",
     #  year 	= 1994}
     #_________________________________________________________________________
-    # jade.m ends here
+    # jade.py ends here
 
 
