@@ -110,11 +110,11 @@ def cjade(X,m=None):
 
     for lx in np.arange(m):
         Yl = Y[lx,:]
-        for kx = np.arange(m):
+        for kx in np.arange(m):
             Ykl = np.multiply(Yl, Y[kx,:].conj()) # element-wise multiply
-            for jx = np.arange(m):
+            for jx in np.arange(m):
                 Yjkl = np.multiply(Ykl, Y[jx,:].conj())
-                for ix = np.arange(m):
+                for ix in np.arange(m):
                     Q[index] = np.multiply(Yjkl, Y[ix,:].T)/T -  R[ix,jx]*R[lx,kx] -  R[ix,kx]*R[lx,jx] -  C[ix,lx]*C[jx,kx].conj()  
                     index += 1
 
