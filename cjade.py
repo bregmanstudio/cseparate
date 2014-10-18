@@ -178,25 +178,25 @@ def cjade(X,m=None):
         encore=0
         for p in np.arange(m-1):
             for q in np.arange(p+1, m):
-            Ip = np.arange(p, nem*m, m)
-            Iq = np.arange(q, nem*m, m)
+                Ip = np.arange(p, nem*m, m)
+                Iq = np.arange(q, nem*m, m)
 
-            # Computing the Givens angles
-            g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
-            D, vcp = eig(real(B*(g*g.H)*Bt))
-            K = np.argsort(diag(D))
-            la = diag(D)[k] 
-            angles	= vcp[:,K[2]]
-            angles = -angles if angles[0]<0 else angles
-            c = np.sqrt(0.5+angles[0]/2.0)
-            s = 0.5*(angles[1]-1j*angles[2])/c
-            if abs(s) > seuil: # updates matrices M and V by a Givens rotation
-                encore = 1
-                pair = np.r_[p,q]
-                G = np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ]
-                V[:,pair] = V[:,pair] * G
-                M[pair,:]	= G.H * M[pair,:]
-                M[:,np.array([Ip,Iq])] = np.r_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
+                # Computing the Givens angles
+                g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
+                D, vcp = eig(real(B*(g*g.H)*Bt))
+                K = np.argsort(diag(D))
+                la = diag(D)[k] 
+                angles	= vcp[:,K[2]]
+                angles = -angles if angles[0]<0 else angles
+                c = np.sqrt(0.5+angles[0]/2.0)
+                s = 0.5*(angles[1]-1j*angles[2])/c
+                if abs(s) > seuil: # updates matrices M and V by a Givens rotation
+                    encore = 1
+                    pair = np.r_[p,q]
+                    G = np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ]
+                    V[:,pair] = V[:,pair] * G
+                    M[pair,:]	= G.H * M[pair,:]
+                    M[:,np.array([Ip,Iq])] = np.r_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
 
 
     #%%estimation of the mixing matrix and signal separation
