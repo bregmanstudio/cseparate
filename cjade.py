@@ -90,8 +90,8 @@ if m < n :  # assumes white noise
  	W	= (matrix(np.diag(bl))*U[:n,k[n-m:n]]).H
  	IW 	= matrix(U[:n,k[n-m:n+1]])*np.diag(ibl)
 else:    # assumes no noise
- 	IW 	= sqrtm((X*X.H)/T);
- 	W	= inv(IW);
+ 	IW 	= sqrtm((X*X.H)/T)
+ 	W	= inv(IW)
 Y	= W * X
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,40 +173,38 @@ s = 0
 encore	= 1
 V = np.eye(m) 
 
-# Main loop -- TRANSLATED TO HERE, MKC 10/18/14 --
-while encore, encore=0;
- for p=1:m-1,
-  for q=p+1:m,
+# Main loop
+while encore:
+    encore=0
+    for p in np.arange(m-1):
+        for q in np.arange(p+1, m):
+ 	Ip = np.arange(p, nem*m, m)
+	Iq = np.arange(q, nem*m, m)
 
- 	Ip = p:m:nem*m ;
-	Iq = q:m:nem*m ;
+	# Computing the Givens angles
+ 	g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
+ 	D, vcp = eig(real(B*(g*g.H)*Bt))
+	K = np.argsort(diag(D))
+        la = diag(D)[k] 
+ 	angles	= vcp[:,K[2]]
+	angles = -angles if angles[0]<0 else angles
+ 	c = np.sqrt(0.5+angles[0]/2.0)
+ 	s = 0.5*(angles[1]-1j*angles[2])/c
+ 	if abs(s) > seuil: # updates matrices M and V by a Givens rotation
+            encore = 1
+            pair = np.r_[p,q]
+            G = np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ]
+            V[:,pair] = V[:,pair] * G
+            M[pair,:]	= G.H * M[pair,:]
+            M[:,np.array([Ip,Iq])] = np.r_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
 
-	% Computing the Givens angles
- 	g	= [ M(p,Ip)-M(q,Iq)  ; M(p,Iq) ; M(q,Ip) ] ; 
- 	[vcp,D] = eig(real(B*(g*g')*Bt));
-	[la, K]	= sort(diag(D));
- 	angles	= vcp(:,K(3));
-	if angles(1)<0 , angles= -angles ; end ;
- 	c	= sqrt(0.5+angles(1)/2);
- 	s	= 0.5*(angles(2)-j*angles(3))/c; 
-
- 	if abs(s)>seuil, %%% updates matrices M and V by a Givens rotation
-	 	encore 		= 1 ;
-		pair 		= [p;q] ;
- 		G 		= [ c -conj(s) ; s c ] ;
-		V(:,pair) 	= V(:,pair)*G ;
-	 	M(pair,:)	= G' * M(pair,:) ;
-		M(:,[Ip Iq]) 	= [ c*M(:,Ip)+s*M(:,Iq) -conj(s)*M(:,Ip)+c*M(:,Iq) ] ;
- 	end%% if
-  end%% q loop
- end%% p loop
-end%% while
 
 #%%estimation of the mixing matrix and signal separation
-A	= IW*V;
-S	= V'*Y ;
+A= IW*V
+S = V.H*Y
 
-return ;
+return A,S
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 # Note 1: This version does *not* assume circularly distributed
 # signals as 1.1 did.  The difference only entails more computations
@@ -304,4 +302,4 @@ return ;
 #_________________________________________________________________________
 # jade.m ends here
 
-return A,S
+
