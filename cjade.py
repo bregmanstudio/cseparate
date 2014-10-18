@@ -78,14 +78,13 @@ def cjade(X,m=None):
     seuil = 1/np.sqrt(T)/100. # a statistical threshold for stopping joint diag
 
     if m < n :  # assumes white noise
-            D, U 	= eig((X*X.H)/T)
-            puiss = np.diag(D)
-            k = np.argsort(puiss)
-            puiss = puiss[k]
-            ibl 	= np.sqrt(puiss[n-m:n]-puiss[:n-m+1].mean())
-            bl 	= np.ones(m,1) / ibl 
-            W	= (matrix(np.diag(bl))*U[:n,k[n-m:n]]).H
-            IW 	= matrix(U[:n,k[n-m:n+1]])*np.diag(ibl)
+            D, U = eig((X*X.H)/T)
+            k = np.argsort(D)
+            puiss = D[k]
+            ibl	= np.sqrt(puiss[n-m:n]-puiss[:n-m].mean())
+            bl 	= np.ones((m,1)) / ibl 
+            W	= np.diag(np.diag(bl))*matrix(U[:n,k[n-m:n]]).H
+            IW 	= matrix(U[:n,k[n-m:n]])*np.diag(ibl)
     else:    # assumes no noise
             IW 	= sqrtm((X*X.H)/T)
             W	= inv(IW)
