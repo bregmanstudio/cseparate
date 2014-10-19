@@ -2,7 +2,7 @@ import numpy as np
 from bregman.suite import *
 from cjade import cjade
 
-def cseparate(x, M=None, N=4096, H =1024, W=4096):
+def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200):
     """
     complex-valued frequency domain separation by independent components
     using relative phase representation
@@ -11,9 +11,10 @@ def cseparate(x, M=None, N=4096, H =1024, W=4096):
       x - the audio signal to separate (1 row)
       M - the number of sources to extract
     options:
-      N - fft length in samples
-      H - hop size in samples
-      W - window length in samples (fft padded with N-W zeros)
+      N - fft length in samples [4096]
+      H - hop size in samples   [1024]
+      W - window length in samples (fft padded with N-W zeros) [4096]
+      max_iter - maximum JADE ICA iterations [200]
     output:
       xhat - the separated signals (M rows)
       xhat_all - the M separated signals mixed (1 row)
@@ -27,7 +28,7 @@ def cseparate(x, M=None, N=4096, H =1024, W=4096):
     U = F._phase_map()    
     X = np.absolute(F.STFT) * np.exp(1j * np.array(F.dPhi)) # Relative phase STFT
 
-    A,S = cjade(X.T, M) # complex-domain JADE by J. F. Cardoso
+    A,S = cjade(X.T, M, max_iter) # complex-domain JADE by J. F. Cardoso
 
     AS = np.array(A*S).T # Non hermitian transpose avoids complex conjugation
 

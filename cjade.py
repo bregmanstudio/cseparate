@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import eig, sqrtm, inv
 import pdb
 
-def cjade(X,m=None):
+def cjade(X, m=None, max_iter=200):
     # Source separation of complex signals with JADE.
     # Jade performs `Source Separation' in the following sense:
     #   X is an n x T data matrix assumed modelled as X = A S + N where
@@ -170,8 +170,10 @@ def cjade(X,m=None):
 
     # Main loop
     encore = True
-    while encore:
+    n_iter = 0
+    while encore and n_iter<max_iter:
         encore = False
+        n_iter += 1
         for p in np.arange(m-1):
             for q in np.arange(p+1, m):
                 Ip = np.arange(p, nem*m, m)
