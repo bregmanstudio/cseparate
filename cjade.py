@@ -65,8 +65,8 @@ def cjade(X,m=None):
     # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
     # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    if type(X) is not numpy.matrixlib.defmatrix.matrix:
-        X = matrix(X)
+    if type(X) is not np.matrixlib.defmatrix.matrix:
+        X = np.matrix(X)
     n,T = X.shape
 
     #  source detection not implemented yet !
@@ -83,8 +83,8 @@ def cjade(X,m=None):
             puiss = D[k]
             ibl	= np.sqrt(puiss[n-m:n]-puiss[:n-m].mean())
             bl 	= np.ones((m,1)) / ibl 
-            W	= np.diag(np.diag(bl))*matrix(U[:n,k[n-m:n]]).H
-            IW 	= matrix(U[:n,k[n-m:n]])*np.diag(ibl)
+            W	= np.diag(np.diag(bl))*np.matrix(U[:n,k[n-m:n]]).H
+            IW 	= np.matrix(U[:n,k[n-m:n]])*np.diag(ibl)
     else:    # assumes no noise
             IW 	= sqrtm((X*X.H)/T)
             W	= inv(IW)
@@ -101,7 +101,7 @@ def cjade(X,m=None):
     Ykl = np.matrix(np.zeros((1,T)))
     Yjkl = np.matrix(np.zeros((1,T)))
 
-    Q = np.matrix(zeros((m*m*m*m,1)))
+    Q = np.matrix(np.zeros((m*m*m*m,1)))
     index = 0
 
     for lx in np.arange(m):
@@ -166,12 +166,12 @@ def cjade(X,m=None):
     s = 0 
 
     # init
-    encore	= 1
     V = np.matrix(np.eye(m))
 
     # Main loop
+    encore = True
     while encore:
-        encore=0
+        encore = False
         for p in np.arange(m-1):
             for q in np.arange(p+1, m):
                 Ip = np.arange(p, nem*m, m)
@@ -179,20 +179,20 @@ def cjade(X,m=None):
 
                 # Computing the Givens angles
                 g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
-                D, vcp = eig(real(B*(g*g.H)*Bt))
+                D, vcp = eig(np.real(B*(g*g.H)*Bt))
                 K = np.argsort(D) # K = np.argsort(diag(D))
                 la = D[K] # la = diag(D)[k] 
                 angles	= vcp[:,K[2]]
                 angles = -angles if angles[0]<0 else angles
                 c = np.sqrt(0.5+angles[0]/2.0)
                 s = 0.5*(angles[1]-1j*angles[2])/c
-                if abs(s) > seuil: # updates matrices M and V by a Givens rotation
-                    encore = 1
+                if np.absolute(s) > seuil: # updates matrices M and V by a Givens rotation
+                    encore = True
                     pair = np.r_[p,q]
-                    G = np.matrix(np.r_[ np.c_[c, -conj(s)], np.c_[s, c] ])
+                    G = np.matrix(np.r_[ np.c_[c, -np.conj(s)], np.c_[s, c] ])
                     V[:,pair] = V[:,pair] * G
                     M[pair,:]	= G.H * M[pair,:]
-                    M[:,np.r_[Ip,Iq]] = np.c_[c*M[:,Ip]+s*M[:,Iq], -conj(s)*M[:,Ip]+c*M[:,Iq] ]
+                    M[:,np.r_[Ip,Iq]] = np.c_[c*M[:,Ip]+s*M[:,Iq], -np.conj(s)*M[:,Ip]+c*M[:,Iq] ]
 
 
     # estimation of the mixing matrix and signal separation
