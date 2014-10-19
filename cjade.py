@@ -66,7 +66,7 @@ def cjade(X, m=None, max_iter=200):
     # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
     if type(X) is not np.matrixlib.defmatrix.matrix:
-        X = np.matrix(X)
+        X = np.matrix(X, dtype=np.complex_)
     n,T = X.shape
 
     #  source detection not implemented yet !
@@ -82,7 +82,7 @@ def cjade(X, m=None, max_iter=200):
             k = np.argsort(D)
             puiss = D[k]
             ibl	= np.sqrt(puiss[n-m:n]-puiss[:n-m].mean())
-            bl 	= np.ones((m,1)) / ibl 
+            bl 	= np.ones((m,1), dtype=np.complex_) / ibl 
             W	= np.diag(np.diag(bl))*np.matrix(U[:n,k[n-m:n]]).H
             IW 	= np.matrix(U[:n,k[n-m:n]])*np.diag(ibl)
     else:    # assumes no noise
@@ -97,11 +97,14 @@ def cjade(X, m=None, max_iter=200):
     R = (Y*Y.H)/T
     C = (Y*Y.T)/T
 
-    Yl = np.matrix(np.zeros((1,T)))
-    Ykl = np.matrix(np.zeros((1,T)))
-    Yjkl = np.matrix(np.zeros((1,T)))
+    czeros = lambda dim: np.matrix(np.zeros(dim, dtype=np.complex_)) # Initialize complex matrices
+    ceye = lambda sz: np.matrix(np.eye(sz, dtype=np.complex_))
 
-    Q = np.matrix(np.zeros((m*m*m*m,1)))
+    Yl = czeros((1,T))
+    Ykl = czeros((1,T))
+    Yjkl = czeros((1,T))
+
+    Q = czeros((m*m*m*m,1))
     index = 0
 
     for lx in np.arange(m):
@@ -135,8 +138,8 @@ def cjade(X, m=None, max_iter=200):
     la = la[K]
 
     # reshaping the most (there are `nem' of them) significant eigenmatrice
-    M = np.matrix(np.zeros((m,nem*m))) # array to hold the significant eigen-matrices
-    Z = np.matrix(np.zeros((m,m))) # buffer
+    M = czeros((m,nem*m)) # array to hold the significant eigen-matrices
+    Z = czeros((m,m)) # buffer
     h = m*m - 1
     for u in np.arange(0, nem*m, m): 
         Z[:] = U[:,K[h]].reshape(m,m)
@@ -152,21 +155,21 @@ def cjade(X, m=None, max_iter=200):
     #% Better declare the variables used in the loop :
     B = np.matrix([ [1, 0, 0], [0, 1, 1], [0, -1j, 1j ]])
     Bt = B.H
-    Ip = np.matrix(np.zeros((1,nem)))
-    Iq = np.matrix(np.zeros((1,nem)))
-    g = np.matrix(np.zeros((3,nem)))
-    G = np.matrix(np.zeros((2,2)))
-    vcp = np.matrix(np.zeros((3,3)))
-    D = np.matrix(np.zeros((3,3)))
-    la = np.matrix(np.zeros((3,1)))
-    K = np.matrix(np.zeros((3,3)))
-    angles = np.matrix(np.zeros((3,1)))
-    pair = np.matrix(np.zeros((1,2)))
+    Ip = czeros((1,nem))
+    Iq = czeros((1,nem))
+    g = czeros((3,nem))
+    G = czeros((2,2))
+    vcp = czeros((3,3))
+    D = czeros((3,3))
+    la = czeros((3,1))
+    K = czeros((3,3))
+    angles = czeros((3,1))
+    pair = czeros((1,2))
     c = 0 
     s = 0 
 
     # init
-    V = np.matrix(np.eye(m))
+    V = ceye(m)
 
     # Main loop
     encore = True
@@ -181,10 +184,10 @@ def cjade(X, m=None, max_iter=200):
 
                 # Computing the Givens angles
                 g = np.r_[ M[p,Ip]-M[q,Iq], M[p,Iq], M[q,Ip] ]
-                D, vcp = eig(np.real(B*(g*g.H)*Bt))
+                D, vcp = eig((B*(g*g.H)*Bt).real)
                 K = np.argsort(D) # K = np.argsort(diag(D))
                 la = D[K] # la = diag(D)[k] 
-                angles	= vcp[:,K[2]]
+                angles = vcp[:,K[2]]
                 angles = -angles if angles[0]<0 else angles
                 c = np.sqrt(0.5+angles[0]/2.0)
                 s = 0.5*(angles[1]-1j*angles[2])/c
@@ -193,7 +196,7 @@ def cjade(X, m=None, max_iter=200):
                     pair = np.r_[p,q]
                     G = np.matrix(np.r_[ np.c_[c, -np.conj(s)], np.c_[s, c] ])
                     V[:,pair] = V[:,pair] * G
-                    M[pair,:]	= G.H * M[pair,:]
+                    M[pair,:] = G.H * M[pair,:]
                     M[:,np.r_[Ip,Iq]] = np.c_[c*M[:,Ip]+s*M[:,Iq], -np.conj(s)*M[:,Ip]+c*M[:,Iq] ]
 
 
