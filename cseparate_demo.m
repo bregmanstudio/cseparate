@@ -1,4 +1,14 @@
-[x,sr] = audioread('gmin.wav');
+% demo of complex-domain relative phase independent component analysis
+%  for audio source separation from monophonic mixtures
+%
+% Michael A. Casey, Bregman Media Labs, 2014
+%
+sndfile = 'gmin.wav'
+if exist('audioread'),
+    [x,sr] = audioread(sndfile);
+else
+    [x,sr] = wavread(sndfile);
+end
 M = 7; % Number of components to separate
 fprintf(1,['separating ', num2str(M), ' components from mixture...']);
 [xhat, xhat_all] = cseparate(x, M);
@@ -11,6 +21,3 @@ for k = 1:M
   pause()
   soundsc(xhat(k,:),sr);
 end
-
-
-
