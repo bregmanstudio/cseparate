@@ -3,7 +3,7 @@ from bregman.suite import *
 from cjade import cjade
 from scipy.optimize import curve_fit
 
-def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200, pre_emphasis=False):
+def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200, pre_emphasis=True):
     """
     complex-valued frequency domain separation by independent components
     using relative phase representation
