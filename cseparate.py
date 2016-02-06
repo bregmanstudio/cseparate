@@ -40,11 +40,11 @@ def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200, pre_emphasis=Tru
 	XX = np.absolute(F.STFT)
 	if pre_emphasis:
 		xx = np.arange(F.X.shape[0])
-#		yy = XX.mean(1)
-#		popt, pcov = curve_fit(pre_func, xx, yy)
-#		XX = (XX.T * (1/pre_func(xx,*popt))).T
-		w = np.r_[np.ones(64), .05*xx[64:]]
-		XX = (XX.T * w).T
+		yy = XX.mean(1)
+		popt, pcov = curve_fit(pre_func, xx, yy)
+		XX = (XX.T * (1/pre_func(xx,*popt))).T
+#		w = np.r_[np.ones(64), .05*xx[64:]]
+#		XX = (XX.T * w).T
 	if magnitude_only:
 		X = XX
 	else:
@@ -67,7 +67,8 @@ def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200, pre_emphasis=Tru
 	X_hat = np.absolute(AS)
 
 	if pre_emphasis:
-		X_hat = (XX.T / (w)).T
+		#X_hat = (XX.T / (w)).T
+		X_hat = (XX.T * pre_func(xx,*popt)).T
 	Phi_hat = phs_rec(AS, F.dphi)
 	x_hat_all = F.inverse(X_hat=X_hat, Phi_hat=Phi_hat, usewin=True)
 	
@@ -81,7 +82,8 @@ def cseparate(x, M=None, N=4096, H =1024, W=4096, max_iter=200, pre_emphasis=Tru
 			AS = AS.T
 		X_hat = np.absolute(AS)
 		if pre_emphasis:
-			X_hat = (XX.T / (w)).T
+			#X_hat = (XX.T / (w)).T
+			X_hat = (XX.T * pre_func(xx,*popt)).T
 		Phi_hat = phs_rec(AS, F.dphi)
 		x_hat.append(F.inverse(X_hat=X_hat, Phi_hat=Phi_hat, usewin=True))
 
